@@ -33,7 +33,11 @@
         <a href="{{ base_path }}{{ post.url }}" rel="permalink">{{ title }}</a>
       {% endif %}
     </h2>
-    
+
+    {% if post.status and post.collection == 'projects' %}
+      <p class="archive__item-status"><span class="pill{% if post.status == 'Upcoming' %} pill--upcoming{% else %} pill--built{% endif %}">{{ post.status }}</span></p>
+    {% endif %}
+
     {% if post.read_time %}
       <p class="page__meta"><i class="fa fa-clock" aria-hidden="true"></i> {% include read-time.html %}</p>
     {% endif %}

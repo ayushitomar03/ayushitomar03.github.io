@@ -1,0 +1,1035 @@
+/* ==========================================================================
+   CUSTOM THEME LAYER
+   Imported last in main.scss so it can refine the base academicpages theme
+   without forking its files. Covers: color, typography, tables, code,
+   archive cards, tag pills, and figure/diagram styling.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Color
+   Light mode keeps a white page but warms the text off pure gray. Dark mode
+   replaces the base theme's flat #474747 with a proper layered dark slate.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --accent                  : #1558b0;
+  --accent-strong           : #0f4489;
+  --accent-soft             : #e8f0fb;
+  --surface                 : #fbfcfd;
+  --surface-raised          : #fff;
+  --rule                    : #e3e8ec;
+  --rule-strong             : #cbd4da;
+  --text-muted              : #5f6c76;
+
+  --global-base-color       : var(--accent);
+  --global-text-color       : #2b3137;
+  --global-text-color-light : var(--text-muted);
+  --global-link-color       : var(--accent);
+  --global-link-color-hover : var(--accent-strong);
+  --global-link-color-visited: var(--accent);
+  --global-border-color     : var(--rule);
+  --global-dark-border-color: var(--rule-strong);
+  --global-code-background-color: #f5f7f9;
+  --global-code-text-color  : #2b3137;
+  --global-masthead-link-color: #2b3137;
+  --global-masthead-link-color-hover: var(--accent);
+  --global-thead-color      : #eef2f5;
+  --global-bg-color         : #ffffff;
+}
+
+html[data-theme="dark"] {
+  --accent                  : #6aa9f5;
+  --accent-strong           : #9cc6fa;
+  --accent-soft             : #14263d;
+  --surface                 : #0f1419;
+  --surface-raised          : #171d24;
+  --rule                    : #263039;
+  --rule-strong             : #36434f;
+  --text-muted              : #93a2ae;
+
+  --global-base-color       : var(--accent);
+  --global-bg-color         : var(--surface);
+  --global-footer-bg-color  : var(--surface);
+  --global-text-color       : #dbe3ea;
+  --global-text-color-light : var(--text-muted);
+  --global-link-color       : var(--accent);
+  --global-link-color-hover : var(--accent-strong);
+  --global-link-color-visited: var(--accent);
+  --global-border-color     : var(--rule);
+  --global-dark-border-color: var(--rule-strong);
+  --global-code-background-color: #131a21;
+  --global-code-text-color  : #dbe3ea;
+  --global-masthead-link-color: #dbe3ea;
+  --global-masthead-link-color-hover: var(--accent);
+  --global-thead-color      : #1b232b;
+  --global-fig-caption-color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   2. Typography
+   Inter for text, JetBrains Mono for code, both with system fallbacks so the
+   page is fully readable before (or without) the webfonts arriving.
+   -------------------------------------------------------------------------- */
+
+$font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-mono: "JetBrains Mono", "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+
+body {
+  font-family: $font-ui;
+  font-feature-settings: "kern" 1, "liga" 1, "cv05" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--global-bg-color);
+}
+
+h1, h2, h3, h4, h5, h6,
+.page__title, .archive__item-title, .page__hero-title {
+  font-family: $font-ui;
+  letter-spacing: -0.018em;
+  font-weight: 650;
+}
+
+code, pre, kbd, samp, tt {
+  font-family: $font-mono;
+  font-feature-settings: "liga" 0;
+}
+
+/* Reading column: prose gets a comfortable measure and a slightly larger,
+   looser body than the theme default. */
+.page__content {
+  font-size: 1.02em;
+  line-height: 1.72;
+
+  p, li {
+    max-width: 46em;
+  }
+
+  > h2 {
+    margin-top: 2.2em;
+    padding-bottom: 0.3em;
+    font-size: 1.55em;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  > h3 {
+    margin-top: 1.9em;
+    font-size: 1.22em;
+  }
+
+  > h4 {
+    margin-top: 1.6em;
+    font-size: 1.04em;
+    color: var(--text-muted);
+    letter-spacing: 0.01em;
+  }
+
+  a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  strong {
+    font-weight: 640;
+  }
+
+  blockquote {
+    margin: 1.6em 0;
+    padding: 0.2em 0 0.2em 1.2em;
+    border-left: 3px solid var(--accent);
+    color: var(--text-muted);
+    font-style: normal;
+  }
+
+  hr {
+    margin: 2.6em 0;
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+.page__title {
+  line-height: 1.18;
+  margin-bottom: 0.35em;
+}
+
+/* --------------------------------------------------------------------------
+   3. Tables
+   These posts are benchmark-table heavy, so tables get first-class styling:
+   no heavy grid lines, tabular figures, zebra rows, and a scroll container
+   so a wide table never forces the page to scroll sideways.
+   -------------------------------------------------------------------------- */
+
+.page__content {
+  table {
+    display: table;
+    width: 100%;
+    max-width: 100%;
+    table-layout: auto;
+    margin: 1.6em 0 1.8em;
+    font-size: 0.88em;
+    line-height: 1.5;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead {
+    background-color: var(--global-thead-color);
+    border-bottom: 0;
+  }
+
+  th {
+    padding: 0.7em 0.9em;
+    font-weight: 620;
+    font-size: 0.94em;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  td {
+    padding: 0.62em 0.9em;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: var(--surface);
+  }
+
+  html[data-theme="dark"] & tbody tr:nth-child(even) {
+    background-color: var(--surface-raised);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Code
+   -------------------------------------------------------------------------- */
+
+.page__content {
+  code:not(pre code) {
+    padding: 0.15em 0.4em;
+    font-size: 0.87em;
+    background-color: var(--global-code-background-color);
+    color: var(--global-code-text-color);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  pre, .highlight, div.highlighter-rouge {
+    background-color: var(--global-code-background-color);
+    color: var(--global-code-text-color);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    font-size: 0.85em;
+    line-height: 1.6;
+  }
+
+  pre {
+    padding: 1em 1.1em;
+    overflow-x: auto;
+  }
+
+  div.highlighter-rouge pre,
+  .highlight pre {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Figures and diagrams
+   Inline SVG diagrams inherit currentColor / theme vars, so they read
+   correctly in both light and dark mode. The wrapper handles overflow.
+   -------------------------------------------------------------------------- */
+
+.diagram {
+  margin: 2em 0;
+  padding: 1.4em 1.2em 1.1em;
+  background-color: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow-x: auto;
+
+  html[data-theme="dark"] & {
+    background-color: var(--surface-raised);
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    color: var(--global-text-color);
+  }
+
+  figcaption, .diagram__caption {
+    margin-top: 1em;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--rule);
+    font-size: 0.82em;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+}
+
+/* Colors referenced by the inline SVG diagrams. */
+:root {
+  --d-line   : var(--rule-strong);
+  --d-fill   : var(--surface-raised);
+  --d-accent : var(--accent);
+  --d-muted  : var(--text-muted);
+  --d-text   : var(--global-text-color);
+  --d-warn   : #d97706;
+  --d-good   : #059669;
+  --d-accent-soft: #eef4fd;
+  --d-good-soft  : #edfaf4;
+  --d-panel  : #fbfcfd;
+}
+
+html[data-theme="dark"] {
+  --d-fill   : #1e2730;
+  --d-accent-soft: #16283f;
+  --d-good-soft  : #10291f;
+  --d-warn   : #fbbf24;
+  --d-good   : #34d399;
+  --d-panel  : #141b22;
+}
+
+/* Mermaid — the loader initialises with theme:'default', so dark mode is
+   corrected here rather than in the init directive. */
+code.language-mermaid {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: center;
+
+  /* Mermaid measures label widths with the UI font. This block lives inside
+     <pre><code>, so the code font would otherwise be inherited and every label
+     would overflow the box mermaid sized for it. */
+  &, svg, svg text, svg tspan,
+  svg .nodeLabel, svg .edgeLabel, svg .cluster-label,
+  svg foreignObject div, svg foreignObject span {
+    font-family: $font-ui !important;
+  }
+
+  svg { max-width: 100%; height: auto; }
+}
+
+html[data-theme="dark"] code.language-mermaid {
+  .nodeLabel, .nodeLabel p, span.nodeLabel,
+  .edgeLabel, .edgeLabel p, .cluster-label, .cluster-label p {
+    color: var(--d-text) !important;
+    background: transparent !important;
+  }
+
+  .edgeLabel, .edgeLabel p { color: var(--d-muted) !important; }
+  .edgePath path, .flowchart-link { stroke: var(--d-line) !important; }
+  marker path { fill: var(--d-line) !important; stroke: var(--d-line) !important; }
+}
+
+/* --------------------------------------------------------------------------
+   6. Post / project listings as cards
+   -------------------------------------------------------------------------- */
+
+.archive {
+  .list__item {
+    margin-bottom: 1.1em;
+  }
+
+  .archive__item {
+    padding: 1.25em 1.35em;
+    background-color: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="dark"] &:hover {
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .archive__item-title {
+    margin: 0 0 0.35em;
+    font-size: 1.16em;
+    line-height: 1.35;
+
+    a {
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    /* the small permalink chain icon */
+    a + a {
+      opacity: 0.28;
+      font-size: 0.7em;
+    }
+  }
+
+  .archive__item-excerpt {
+    margin: 0.5em 0 0;
+    font-size: 0.92em;
+    line-height: 1.62;
+    color: var(--text-muted);
+
+    p {
+      margin: 0;
+    }
+
+    /* the placeholder teaser images the base theme injects */
+    img {
+      display: none;
+    }
+  }
+
+  .page__meta,
+  .page__date {
+    margin: 0;
+    font-size: 0.78em;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+}
+
+.archive__subtitle {
+  margin: 2.2em 0 1em;
+  padding-bottom: 0.45em;
+  font-size: 0.82em;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* --------------------------------------------------------------------------
+   7. Status + tag pills
+   -------------------------------------------------------------------------- */
+
+.pill {
+  display: inline-block;
+  padding: 0.22em 0.62em;
+  margin: 0 0.35em 0.4em 0;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  color: var(--text-muted);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.pill--built {
+  color: var(--accent);
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+.pill--progress {
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.archive__item-status {
+  margin: 0.2em 0 0.5em;
+}
+
+.pill--upcoming {
+  color: var(--text-muted);
+  border-color: var(--rule-strong);
+  border-style: dashed;
+  background-color: transparent;
+}
+
+.pill-row {
+  margin: 0 0 1.6em;
+  line-height: 2.1;
+}
+
+/* Key-result strip under a post title. */
+.keyresults {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9em;
+  margin: 1.6em 0 2em;
+  padding: 0;
+  list-style: none;
+
+  li {
+    flex: 1 1 8.5em;
+    max-width: none;
+    padding: 0.85em 1em;
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
+
+  html[data-theme="dark"] & li {
+    background-color: var(--surface-raised);
+  }
+
+  .keyresults__value {
+    display: block;
+    font-size: 1.32em;
+    font-weight: 660;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--global-text-color);
+  }
+
+  .keyresults__label {
+    display: block;
+    margin-top: 0.3em;
+    font-size: 0.76em;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Masthead + sidebar polish
+   -------------------------------------------------------------------------- */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+
+  .site-title {
+    font-weight: 660;
+    letter-spacing: -0.015em;
+  }
+
+  .greedy-nav {
+    background: transparent;
+
+    a {
+      font-size: 0.9em;
+      font-weight: 520;
+    }
+  }
+}
+
+.author__avatar img {
+  border: 1px solid var(--rule);
+}
+
+.author__name {
+  font-weight: 660;
+  letter-spacing: -0.015em;
+}
+
+.author__bio {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.author__urls {
+  li {
+    font-size: 0.9em;
+  }
+
+  a {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8b. Pages with no author sidebar
+   Posts and project pages set `author_profile: false`, which drops the
+   .sidebar element entirely — so the content column has to reclaim the
+   space the sidebar would have occupied instead of leaving a gutter.
+   -------------------------------------------------------------------------- */
+
+#main:not(:has(.sidebar)) {
+  .page {
+    float: none;
+    width: 100%;
+    max-width: 54rem;
+    margin: 0 auto;
+    padding-right: 0;
+  }
+
+  .page__related,
+  .page__footer-follow {
+    float: none;
+    width: 100%;
+    max-width: 54rem;
+    margin: 0 auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Home page — featured pair, writing list
+   The home page drops the theme's author sidebar (`author_profile: false`)
+   and runs full width, so the identity block has to be rebuilt inline.
+   -------------------------------------------------------------------------- */
+
+/* Two featured cards side by side.
+   The card's outer edge lines up with the section label above it and the
+   project rows below, so the block sits in the same column as everything
+   else; the padding then indents the card's contents evenly on all sides.
+   Grid stretch + `height: 100%` keeps the two boxes the same height, and
+   `margin-top: auto` on the button pins both buttons to a common baseline
+   even though the descriptions differ in length. */
+.featured-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1.2em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: flex;
+    max-width: none;
+    margin: 0;
+  }
+
+  .feature-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  .demo-link {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+}
+
+/* Writing as a dated list rather than a stack of cards. */
+.writing-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    max-width: none;
+    margin: 0;
+    border-bottom: 1px solid var(--rule);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  a {
+    display: flex;
+    align-items: baseline;
+    gap: 1.1em;
+    /* no horizontal padding — it would offset these rows from the section
+       label and the intro paragraphs above them */
+    padding: 0.85em 0;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      text-decoration: none;
+      background-color: var(--surface);
+
+      .writing-list__title {
+        color: var(--accent);
+      }
+    }
+  }
+
+  html[data-theme="dark"] & a:hover {
+    background-color: var(--surface-raised);
+  }
+
+  &__date {
+    flex: 0 0 4.4em;
+    font-size: 0.8em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    font-size: 0.99em;
+    font-weight: 580;
+    line-height: 1.4;
+    transition: color 0.12s ease;
+  }
+
+  &__note {
+    display: block;
+    margin-top: 0.22em;
+    font-size: 0.86em;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 34rem) {
+    a {
+      display: block;
+    }
+
+    &__date {
+      display: block;
+      margin-bottom: 0.2em;
+    }
+  }
+}
+
+/* Compact two-column project links. */
+.project-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.15em 1.6em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    max-width: none;
+    margin: 0;
+  }
+
+  a {
+    display: block;
+    padding: 0.5em 0;
+    font-size: 0.93em;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  }
+
+  .project-links__tag {
+    margin-left: 0.5em;
+    font-size: 0.78em;
+    color: var(--text-muted);
+  }
+}
+
+.home-footer-links {
+  margin-top: 2.4em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+/* The intro paragraphs are one block of prose — same size, weight and colour
+   throughout. Any differentiation between them reads as accidental. */
+.intro-lede {
+  margin: 0.2em 0 0.9em;
+  font-size: 1.42em;
+  line-height: 1.42;
+  font-weight: 600;
+  letter-spacing: -0.021em;
+  color: var(--global-text-color);
+  max-width: 22em;
+}
+
+.intro-body {
+  margin: 0 0 0.95em;
+  font-size: 1.02em;
+  line-height: 1.72;
+  font-weight: 400;
+  color: var(--text-muted);
+  max-width: 40em;
+}
+
+/* Small uppercase section label used to break up the home page. */
+.section-label {
+  display: block;
+  margin: 2.6em 0 1em;
+  padding-bottom: 0.5em;
+  font-size: 0.74em;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Compact rows rather than a card grid — three items never divide evenly into
+   a two-column grid in this column width, which left an orphan card and a
+   dead gap beside it. */
+.focus-grid {
+  margin: 0 0 0.5em;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+    max-width: none;
+    margin: 0;
+    padding: 0.72em 0;
+    border-bottom: 1px solid var(--rule);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  strong {
+    flex: 0 0 12em;
+    font-size: 0.94em;
+    font-weight: 620;
+    line-height: 1.4;
+  }
+
+  span {
+    flex: 1 1 auto;
+    font-size: 0.9em;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 34rem) {
+    li {
+      display: block;
+    }
+
+    strong {
+      display: block;
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. Post cards (home page "selected writing")
+   -------------------------------------------------------------------------- */
+
+.post-cards {
+  display: grid;
+  gap: 0.75em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    max-width: none;
+    margin: 0;
+  }
+
+  a.post-card {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+    padding: 1em 1.15em;
+    text-decoration: none;
+    color: inherit;
+    background-color: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      text-decoration: none;
+
+      .post-card__title {
+        color: var(--accent);
+      }
+    }
+  }
+
+  .post-card__metric {
+    flex: 0 0 5.4em;
+    font-size: 1.08em;
+    font-weight: 660;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+
+  .post-card__body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .post-card__title {
+    display: block;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.35;
+    transition: color 0.15s ease;
+  }
+
+  .post-card__note {
+    display: block;
+    margin-top: 0.28em;
+    font-size: 0.87em;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 30rem) {
+    a.post-card {
+      display: block;
+    }
+
+    .post-card__metric {
+      display: block;
+      margin-bottom: 0.35em;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Featured / demo card
+   -------------------------------------------------------------------------- */
+
+.feature-card {
+  margin: 0;
+  padding: 1.35em 1.4em;
+  background-color: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+
+  html[data-theme="dark"] & {
+    background-color: var(--surface-raised);
+  }
+
+  .feature-card__eyebrow {
+    display: block;
+    margin-bottom: 0.4em;
+    font-size: 0.72em;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .feature-card__title {
+    display: block;
+    margin-bottom: 0.45em;
+    font-size: 1.14em;
+    font-weight: 640;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+
+    a {
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  p {
+    margin: 0 0 0.9em;
+    max-width: 42em;
+    font-size: 0.93em;
+    line-height: 1.62;
+    color: var(--text-muted);
+  }
+}
+
+/* Watch-the-demo button. The theme underlines every link inside page content,
+   which draws a line straight through the button label — hence the explicit
+   override on the element and its descendants. */
+.page__content a.demo-link,
+a.demo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.58em 1.05em;
+  font-size: 0.87em;
+  font-weight: 600;
+  text-decoration: none !important;
+  color: var(--global-bg-color);
+  background-color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  transition: background-color 0.15s ease;
+
+  /* :visited must keep the RESTING style, not the hover style — grouping it
+     with :hover repainted the label in the hover colour permanently once the
+     link had been followed. */
+  &:visited {
+    color: var(--global-bg-color);
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &:hover,
+  &:focus {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+    text-decoration: none !important;
+    color: var(--global-bg-color);
+  }
+
+  &::before {
+    content: "▶";
+    font-size: 0.75em;
+    line-height: 1;
+  }
+}
+
+/* Must out-specify `.page__content a.demo-link` above, or the ghost variant
+   renders as a second solid button. */
+.page__content a.demo-link--ghost,
+a.demo-link--ghost {
+  color: var(--accent);
+  background-color: transparent;
+
+  /* An already-visited ghost button previously rendered white-on-transparent,
+     i.e. an empty outlined box. */
+  &:visited {
+    color: var(--accent);
+    background-color: transparent;
+  }
+
+  /* Stay outlined on hover/focus/active. Inverting to a solid fill meant the
+     button stayed filled after a click, because focus persists. */
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--accent-strong);
+    background-color: var(--accent-soft);
+    border-color: var(--accent-strong);
+  }
+}

@@ -1,26 +1,54 @@
 ---
 title: "Disaggregated Prefill/Decode Inference System"
-excerpt: "**Status: Planned.** A serving architecture that splits prefill and decode onto separate GPU pools to improve throughput, modeled after production frontier-lab serving stacks. <br/><img src='/images/500x300.png'>"
+excerpt: "Built and benchmarked. A hand-built disaggregated engine, vLLM at TP=2, and real NixlConnector disaggregation on Qwen2.5-32B — all measured against colocated baselines at matched GPU count. 2.4× TTFT improvement at 7B, and a tail-latency failure traced to interconnect saturation."
 collection: projects
+order: 1
+status: Published
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--built">Built &amp; benchmarked</span>
+  <span class="pill">Qwen2.5-7B / 32B</span>
+  <span class="pill">2× A100-80GB PCIe</span>
+  <span class="pill">vLLM · NIXL · PyTorch</span>
+</p>
 
-## Why this matters
-Disaggregated prefill/decode serving is one of the more advanced ideas frontier labs use in production (it's the core idea behind systems like DistServe and Splitwise, and reportedly used internally at the largest labs). Understanding — and better, implementing — why this split helps is a strong signal of systems depth beyond "I called the vLLM API."
+Prefill is compute-bound; decode is memory-bandwidth-bound. Running them on the same GPU means
+each phase competes for the resource the other isn't using. This project implements the split
+three different ways and measures all of them against colocated baselines at matched GPU count.
 
-## What to build
-- A two-tier serving setup: a "prefill pool" of GPUs that handles the compute-bound prompt-processing phase, and a "decode pool" that handles the memory-bandwidth-bound token-generation phase
-- A scheduler that routes incoming requests to prefill first, then hands off KV-cache state to a decode worker
-- Benchmark against a baseline single-pool (non-disaggregated) setup on the same total GPU count, measuring throughput and per-request latency (especially tail latency / TTFT)
+## What was built
 
-## Key concepts to demonstrate
-- Why prefill (compute-bound, parallel over prompt tokens) and decode (memory-bandwidth-bound, sequential) have fundamentally different hardware utilization profiles
-- Why colocating them on the same GPUs causes interference (long prefills blocking decode steps, hurting tail latency)
-- How KV-cache has to be transferred or made accessible across the prefill/decode boundary, and what that costs
+- **A custom engine** calling HF `transformers` directly, with manual KV-cache management and
+  separate prefill/decode OS processes (threads were evaluated and rejected — the GIL
+  serialises CPU-side scheduling and made tail latency *worse* than the baseline).
+- **A paged/block-based KV cache** with per-request block tables, validated token-for-token
+  including multi-block-boundary stress cases.
+- **A real disaggregated vLLM deployment** on Qwen2.5-32B: separate prefill and decode servers
+  with `--kv_role=kv_producer`/`kv_consumer`, plus a proxy relaying `kv_transfer_params`, with
+  KV blocks moving over NIXL (RDMA-style, UCX transport).
+- **One workload generator** driving every configuration identically: 50 requests, ~80% short /
+  20% long, Poisson arrivals at 150 ms mean interarrival, fixed seed.
 
-## Suggested stack
-Build on vLLM or a custom minimal engine; NCCL or a simple network transfer for KV-cache handoff between pools; a load generator with mixed short/long prompts to expose the interference problem in the baseline.
+## Results
 
-## Definition of done
-A working disaggregated setup with a benchmark showing improved tail latency and/or throughput vs. a non-disaggregated baseline on identical hardware, with a write-up explaining why.
+At 7B, disaggregation improved TTFT p99 by **2.4×** (795 ms → 332 ms). At 32B it improved TTFT
+p50 by **2.8×**. But TTFT p99 under load hit **15.1 s** — and vLLM's own KV Transfer metrics
+showed why: average transfer payload climbed from 4 MB to 424 MB as long prompts entered
+rotation, saturating a PCIe interconnect with no NVLink.
+
+Three implementations, three proximate causes (GPU contention, batch-size admission queueing,
+interconnect saturation), one shared root cause: **a fixed 1:1 prefill:decode ratio
+under-provisions decode once demand exceeds one GPU's capacity.**
+
+Two correctness defects worth noting: `sdpa` attention silently corrupts output for left-padded
+rows combined with an explicit `Cache` object (caught by token-for-token diff, not by any
+exception), and the paged cache initially allocated blocks once per *layer* instead of once per
+*token* while never freeing them on completion.
+
+[Read the full writeup →](/blog/disaggregated-prefill-decode/)
+
+## Open
+
+Right-sizing the prefill:decode ratio with multiple replicas per role behind the proxy — vLLM's
+routing already supports it; I haven't run it.

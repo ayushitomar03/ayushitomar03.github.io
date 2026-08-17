@@ -1,29 +1,29 @@
 ---
-title: 'Continuous Batching and PagedAttention: How Modern LLM Servers Hit High Throughput'
+title: 'Continuous Batching and PagedAttention: Why It Has to Be a Kernel'
 date: 2026-07-04
 permalink: /blog/continuous-batching-paged-attention/
 tags:
   - inference
   - llm-serving
+excerpt: "In progress. I built a paged block-based KV cache and it came out slower than the naive version — the reason why is the argument for PagedAttention being a CUDA kernel rather than a data structure."
+published: false
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row"><span class="pill pill--progress">Writeup in progress</span></p>
 
-## Why write this
-This is the single most-asked-about idea in LLM serving interviews, and most people can gesture at "vLLM is fast" without being able to explain the actual mechanism. Writing this well — in your own words, ideally alongside your [inference server project](/projects/llm-inference-server/) — proves real understanding.
+I built a paged, block-based KV cache — fixed-size blocks, per-request block tables — as part
+of the [disaggregated inference project](/blog/disaggregated-prefill-decode/), validated it
+token-for-token including multi-block-boundary stress cases, and found two real defects doing
+so: block allocation happening once per layer instead of once per token, and blocks never
+being freed on request completion.
 
-## Outline
-1. The naive baseline: static batching and why it wastes GPU cycles (padding to the longest sequence, batch can't start until all requests arrive)
-2. Continuous batching: adding/removing requests from a running batch at every decode step
-3. The KV-cache memory problem this creates — variable-length caches, fragmentation
-4. PagedAttention: block-based KV-cache allocation borrowed from OS virtual memory paging
-5. Put numbers on it: throughput improvement continuous batching + paged KV-cache gives over naive batching (cite vLLM paper numbers, ideally back with your own benchmark)
+Then it came out **slower** than the naive batch-capped version it was meant to replace. That
+result deserves its own post: reconstructing a request's cache from
+block storage every tick costs `seq_len / block_size` slice-and-concat operations per layer,
+each paying fixed Python and kernel-launch overhead regardless of how much data it moves. Which
+is precisely why production PagedAttention is a CUDA kernel operating directly on block memory,
+not a Python-level gather.
 
-## Key points to nail
-- Explain *why* padding to the longest sequence in a batch is wasteful, with a concrete example
-- Be precise about what "page" means here (fixed-size KV-cache blocks, not virtual memory pages) — this is the detail that separates a real understanding from a surface one
-- Tie it back to a metric that matters: throughput (tokens/sec) and GPU memory utilization
-
-## Reference reading
-- vLLM paper: "Efficient Memory Management for Large Language Model Serving with PagedAttention"
-- Orca paper (continuous batching origin)
+The measurements are already in the
+[disaggregation writeup](/blog/disaggregated-prefill-decode/). This post will cover continuous
+batching and the block-table mechanism properly on their own terms.

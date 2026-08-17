@@ -1,30 +1,65 @@
 ---
 title: "Pretraining Data Pipeline at Scale"
-excerpt: "**Status: Planned.** A distributed pipeline for deduplication, quality filtering, and tokenization of a multi-billion-token web corpus. <br/><img src='/images/500x300.png'>"
+excerpt: "Built. A FineWeb slice through distributed MinHash/LSH near-dup detection, Gopher-style quality filters, and GPT-2 perplexity scoring — with per-stage lineage manifests recording what got removed and why, which is how four silent bugs got caught."
 collection: projects
+order: 5
+status: Upcoming
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--upcoming">Writeup upcoming</span>
+  <span class="pill pill--built">Pipeline built</span>
+  <span class="pill pill--progress">Scale run pending</span>
+  <span class="pill">Ray Data · MinHash/LSH</span>
+  <span class="pill">tiktoken · fastText</span>
+</p>
 
-## Why this matters
-Data engineering is the unglamorous half of frontier model training, and it's chronically understaffed relative to how much it matters — garbage in, garbage model out. Showing you can build a pipeline that operates at real scale (not a toy 10MB dataset) is exactly the signal data/ML infra teams at frontier labs screen for.
+Data-pipeline bugs don't crash — they delete part of your corpus and hand you a smaller file
+that looks completely normal. So the design decision that mattered most here wasn't which
+filters to use; it was making every stage record what it removed and why.
 
-## What to build
-- Ingest a public web-scale corpus (e.g. a slice of Common Crawl / FineWeb / C4)
-- Implement, at minimum:
-  - MinHash/LSH-based near-duplicate detection at scale (not just exact-match dedup)
-  - Quality filtering (language ID, perplexity filtering, heuristic rules à la Gopher/FineWeb)
-  - Tokenization with a production tokenizer (tiktoken/ SentencePiece) and packing into fixed-length sequences
-- Make it distributed — Spark, Ray Data, or Dask — not a single-process script
-- Track dataset lineage/versioning (what filters removed what fraction, reproducible manifests)
+## What was built
 
-## Key concepts to demonstrate
-- Why exact-match dedup misses most real duplicates (near-duplicate boilerplate, templated pages)
-- The measurable effect of data quality filtering on downstream loss (even at small scale, e.g. training a tiny model on filtered vs. unfiltered data)
-- How to make a data pipeline reproducible and auditable, not just "a script that ran once"
+Six stages, each writing its own lineage record:
 
-## Suggested stack
-Ray Data or Spark for distributed processing; `datasketch` or a custom MinHash implementation for dedup; Hugging Face `datasets` for storage; DuckDB for fast local analysis of pipeline stats.
+| Stage | What it does |
+|---|---|
+| Ingest | Streams a FineWeb slice (no full-corpus download), writes sharded JSONL |
+| Dedup | Distributed MinHash signatures via Ray Data + LSH near-dup clustering (128 perms, 5-token shingles, Jaccard 0.8, 32 bands) |
+| Heuristic filter | Gopher/FineWeb document-statistics rules — length, symbol ratio, bullet-line fraction, stopword presence |
+| Language ID | fastText, high-confidence English only |
+| Perplexity filter | GPT-2 perplexity scoring on GPU, drops the highest-perplexity tail |
+| Tokenize + pack | tiktoken BPE, packed into fixed-length sequences |
 
-## Definition of done
-A repo with the pipeline code, a report on how much data was removed at each stage and why, and ideally a small experiment showing filtered data improves downstream perplexity/loss vs. unfiltered.
+Filters run cheapest-first by design: by the time GPU perplexity scoring runs, the corpus has
+already shrunk substantially — the difference between a filter you can afford and one you
+can't.
+
+Every run writes `manifests/run-<timestamp>-<config_hash>.json`: the exact config (hashed), the
+git commit, and per-stage docs in/out plus removal reasons
+(`{"low_alpha_fraction": 252, "too_few_words": 2}`).
+
+## What it caught
+
+Smoke-testing at 60 and 400 documents found four real defects, **three of them silent**:
+
+- The language filter compared `lid.176`-style `"en"` codes against a model emitting FLORES-200
+  `"eng_Latn"` — **silently rejecting 100% of documents**, with no exception.
+- Ray Data's `write_json` appends part-files rather than replacing the directory, so re-running
+  any stage silently mixed stale documents from prior runs into downstream stages.
+- The perplexity filter crashed on empty input — the one loud bug, and only because a silent bug
+  upstream fed it an empty corpus.
+
+The manifests also surfaced a discrepancy I haven't resolved: two runs with the same config hash
+removed 252 vs 1 documents at the heuristic stage. Without per-stage logging that would have
+been an invisible 2.7× difference in corpus size.
+
+[Read the full writeup →](/blog/pretraining-data-pipelines/)
+
+## Not done yet
+
+The filtered-vs-unfiltered training comparison harness is written and both corpora are packed,
+but **it hasn't been run at a scale that would mean anything, and there is no result to
+report.** The reference run is 400 documents — a smoke test proving the plumbing works, not an
+experiment. "Distributed" currently means Ray Data local-mode multi-core; no multi-node run has
+happened.

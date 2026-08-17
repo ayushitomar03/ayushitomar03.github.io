@@ -1,28 +1,48 @@
 ---
 title: "Inference Roofline & KV Cache Sizing Calculator"
-excerpt: "**Status: Planned.** A calculator that reproduces the inference-chapter exercises from 'How to Scale Your Model' — KV cache sizing, batch size limits, and prefill/decode sharding, including a Mixture-of-Experts variant. <br/><img src='/images/500x300.png'>"
+excerpt: "Built and validated. A calculator for parameter counts, KV cache memory, memory-bound latency floors, and tensor-parallel sharding tradeoffs — checked against a real model load to 0.0044% and a measured NCCL all-reduce, not spec sheets."
 collection: projects
+order: 6
+status: Upcoming
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--upcoming">Writeup upcoming</span>
+  <span class="pill pill--built">Tool built &amp; validated</span>
+  <span class="pill pill--progress">Writeup pending</span>
+  <span class="pill">Python</span>
+</p>
 
-## Why this matters
-This directly extends the [disaggregated inference project](/projects/disaggregated-inference-system/): before you can decide *how* to shard prefill/decode, you need to be able to calculate KV cache size, parameter loading time, and compute-bound batch size for a given model and chip. The [inference chapter](https://jax-ml.github.io/scaling-book/inference/) of *How to Scale Your Model* works through exactly this, including a Mixture-of-Experts case.
+The sizing questions that come *before* you can decide how to shard a model for inference:
+parameter counts, KV cache memory, memory-bound latency floors, tensor-parallel tradeoffs, and
+the MoE-specific version of each. It extends the
+[disaggregated inference project](/projects/disaggregated-inference-system/) directly — the
+prefill:decode ratio that writeup flags as unresolved is exactly a sharding-sizing question.
 
-## What to build
-Turn the chapter's worked problems into a reusable calculator:
-- Q1/Q2: given model config (layers, heads, dims), compute total parameters and per-token KV cache size in int8, then the max batch size that fits on a given chip slice at a given sequence length
-- Q3/Q4: compute parameter-loading time from HBM as a latency lower bound, and design a sharding strategy for prefill vs. decode separately, including ICI (chip-to-chip interconnect) bandwidth constraints
-- Q5/Q6: extend the calculator to a Mixture-of-Experts model (E experts, k active) — total vs. activated parameters, FLOPs-bound batch size, and expert-sharding weight-loading time
-- Q7: implement the 2D weight-stationary sharding math and find the crossover point where it beats standard 3D model sharding
+## Validation, which is the interesting part
 
-## Key concepts to demonstrate
-- Why prefill and decode need *different* sharding strategies, derived from the numbers, not intuition
-- How MoE changes the KV-cache/parameter-count math versus a dense model
-- Reading hardware specs (HBM bandwidth, ICI bandwidth, peak FLOPs) as direct inputs to a design decision, not background trivia
+A calculator that's only internally consistent proves nothing. Two anchors to real
+measurements:
 
-## Suggested stack
-Python calculator (dataclasses for model/chip configs); validate a subset against a real served model if you have access to one (e.g. an open MoE model like Mixtral).
+- **Parameter count** — the formula gives 7,615,283,200 for Qwen2.5-7B-Instruct against a
+  measured 7,615,616,512 from actually loading the model. **0.0044% off**, fully accounted for
+  by RMSNorm scale parameters the formula omits as negligible.
+- **Interconnect bandwidth** — the 16.26 GB/s figure isn't from a spec sheet. It's backed out
+  from a real 200 MB NCCL all-reduce (~12.3 ms steady state) measured on the same box during
+  [the observability work](/projects/gpu-observability-dashboard/).
 
-## Definition of done
-A calculator/notebook covering all seven exercises with your own worked answers, plus a short comparison of a dense vs. MoE model's inference sizing on the same hardware.
+## Sample output
+
+Qwen2.5-7B on one L40S:
+
+- KV cache per token (int8): **28,672 bytes**
+- Max batch size — seq_len 2,048: **481** · 8,192: **120** · 32,768: **30**
+- Memory-bound decode-step latency floor (bf16): **17.63 ms**, against a measured steady-state
+  decode step of ~17–25 ms/token with batching — same order of magnitude, which is what
+  confirms the system is genuinely memory-bound
+
+## Honest caveat
+
+The MoE model (Mixtral-8x7B) was never independently loaded, so its numbers are checked only
+against widely-known public figures (~46.7B total / ~12.9B active) — one notch less verified
+than the Qwen numbers, and flagged as such in the repo.

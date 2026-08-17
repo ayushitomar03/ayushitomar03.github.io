@@ -7,8 +7,12 @@ author_profile: true
 
 {% include base_path %}
 
+<p>Work in progress and queued up next. Anything finished and written up moves over to
+<a href="/year-archive/">the blog</a>.</p>
 
-{% for post in site.projects %}
-  {% include archive-single.html %}
+{% assign ordered = site.projects | sort: "order" %}
+{% for post in ordered %}
+  {% unless post.status == 'Published' %}
+    {% include archive-single.html %}
+  {% endunless %}
 {% endfor %}
-

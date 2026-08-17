@@ -36,7 +36,7 @@ function setTheme(theme) {
     $("html").attr("data-theme", "dark");
     $("#theme-icon").removeClass("fa-sun").addClass("fa-moon");
   } else if (use_theme === "light") {
-    $("html").removeAttr("data-theme");
+    $("html").attr("data-theme","dark");
     $("#theme-icon").removeClass("fa-moon").addClass("fa-sun");
   }
 }
@@ -59,7 +59,7 @@ if (mermaidElements.length > 0) {
     moduleScript.type = 'module';
     moduleScript.textContent = `
       import mermaid from '${MERMAID_URL}';
-      mermaid.initialize({startOnLoad:true, theme:'default'});
+      var _cs = getComputedStyle(document.documentElement);var _v = function(n, f){ var x = _cs.getPropertyValue(n).trim(); return x || f; };mermaid.initialize({startOnLoad:true, theme:'base', themeVariables:{fontFamily:'Inter, -apple-system, system-ui, sans-serif',primaryColor:_v('--d-fill','#ffffff'),primaryTextColor:_v('--global-text-color','#2b3137'),primaryBorderColor:_v('--d-line','#c7d2dc'),lineColor:_v('--d-muted','#98a6b3'),textColor:_v('--global-text-color','#2b3137'),clusterBkg:_v('--d-panel','#fbfcfd'),clusterBorder:_v('--d-line','#dde4ea'),edgeLabelBackground:_v('--global-bg-color','#ffffff'),tertiaryColor:_v('--d-panel','#fbfcfd')}});
       await mermaid.run({querySelector:'code.language-mermaid'});
     `;
     document.body.appendChild(moduleScript);

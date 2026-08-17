@@ -1,29 +1,46 @@
 ---
 title: "Roofline Modeling & Benchmarking Toolkit"
-excerpt: "**Status: Planned.** Solve and code up the Roofline chapter's exercises from 'How to Scale Your Model,' then validate the predictions against real GPU benchmarks. <br/><img src='/images/500x300.png'>"
+excerpt: "Built. Arithmetic-intensity and roofline analysis turned into reusable code, with the crossover between memory-bound and compute-bound derived rather than asserted. Shares its validated core with the inference sizing calculator."
 collection: projects
+order: 7
+status: Upcoming
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--upcoming">Writeup upcoming</span>
+  <span class="pill pill--built">Tool built</span>
+  <span class="pill pill--progress">Writeup pending</span>
+  <span class="pill">Python</span>
+</p>
 
-## Why this matters
-Roofline analysis (compute-bound vs. memory-bandwidth-bound) is the single mental model that underlies every serving and training optimization decision at a frontier lab. Being able to predict *before you run anything* whether a kernel will be compute- or memory-bound — and being right — is a concrete signal of systems maturity.
+Roofline reasoning — will this kernel be compute-bound or memory-bandwidth-bound, and at what
+batch size does it flip — is the mental model underneath every serving and training
+optimisation decision. This turns the math into code you can re-run against different model and
+chip configs instead of re-deriving it each time.
 
-## What to build
-Work through the exercises in ["A Brief Intro to Roofline Analysis"](https://jax-ml.github.io/scaling-book/roofline/) from Google DeepMind's *How to Scale Your Model*, then turn the math into reusable code:
-- Q1/Q4: a calculator for bytes loaded/written, total FLOPs, arithmetic intensity, and predicted runtime for int8 matmuls of arbitrary shape
-- Q2: derive (and code) the batch-size threshold where a mixed int8-weight/bf16-activation matmul flips from memory-bound to compute-bound
-- Q3: generate the actual roofline plot (peak FLOPs/s vs. batch size) for `F = D = 4096` and `F = D = 1024`
-- Q5: repeat the memory-roofline analysis for an H100 GPU (using its published specs, including structured sparsity claims) instead of a TPU
-- Validate: benchmark real matmuls at several shapes/batch sizes on whatever GPU you have access to, and check how well your predicted crossover point matches the measured one
+It shares its core with the
+[inference sizing calculator](/projects/inference-roofline-kv-cache-calculator/): the same
+`DenseModelConfig` / `ChipConfig` dataclasses, with `num_experts=1` recovering the dense case
+exactly so one code path covers both dense and MoE.
 
-## Key concepts to demonstrate
-- Arithmetic intensity as the single number that determines compute- vs. memory-bound
-- Why the "roofline" is two lines (a memory-bandwidth line and a peak-FLOPs line) and the crossover point is the batch size that matters
-- Where real hardware deviates from the idealized roofline (kernel launch overhead, imperfect utilization)
+## What it computes
 
-## Suggested stack
-Plain Python/NumPy for the calculator; PyTorch or JAX for the validation benchmarks; matplotlib for the roofline plots.
+- Bytes loaded/written, total FLOPs, arithmetic intensity, and predicted runtime for matmuls of
+  arbitrary shape
+- The batch-size threshold where a mixed int8-weight / bf16-activation matmul flips from
+  memory-bound to compute-bound
+- Parameter-loading time from HBM as a hard decode-step latency floor
+- Prefill vs decode sharding across N chips, including interconnect communication cost
 
-## Definition of done
-A small library/notebook that reproduces all five exercises with code (not just algebra), plus a validation section showing measured vs. predicted crossover batch size on real hardware.
+## Validation
+
+Both hardware constants it leans on are anchored to measurements from other projects rather
+than spec sheets — the parameter formula checks against a real model load to **0.0044%**, and
+the interconnect bandwidth is backed out from a measured NCCL all-reduce. Details in
+[the sizing calculator](/projects/inference-roofline-kv-cache-calculator/).
+
+## Pending
+
+The writeup that shows the derivation — where the roofline knee sits and why decode lands on
+the memory-bound side while prefill doesn't — plus a validation sweep benchmarking real matmuls
+at several shapes to check predicted vs measured crossover.

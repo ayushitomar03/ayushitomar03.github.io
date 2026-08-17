@@ -35,5 +35,8 @@
     "layout/page",
     "layout/archive",
     "layout/sidebar",
-    "layout/json_cv"
+    "layout/json_cv",
+
+    /* Site-specific refinements — must stay last so it can override the above */
+    "layout/custom"
 ;

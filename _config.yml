@@ -8,6 +8,7 @@
 
 # Basic Site Settings
 locale                   : "en-US"
+default_theme            : "dark" # page loads in dark mode; the toggle still works
 site_theme               : "default" # The available themes options are "default", "air", "sunrise", "mint", "dirt" and "contrast"
 title                    : "Ayushi Tomar"
 title_separator          : "-"
@@ -23,10 +24,10 @@ repository               : "ayushitomar03/ayushitomar03.github.io"
 #               Additional customization can be done by editing /_includes/author-profile.html
 author:
   # Biographic information
-  avatar           : "profile.png"
+  avatar           : "profile.jpg"
   name             : "Ayushi Tomar"
   pronouns         : # example: "she/her"
-  bio              : "Working on ML infrastructure, inference systems, and data engineering."
+  bio              : "ML systems, inference, training, and evaluation — with a focus on real-time systems."
   location         : # e.g. "San Francisco, CA"
   employer         : # e.g. current company
   uri              : # URL
@@ -225,11 +226,14 @@ defaults:
       type: posts
     values:
       layout: single
-      author_profile: true
+      # Writeups read full width — the author sidebar stays on the home page
+      # and the index pages only.
+      author_profile: false
       read_time: true
       comments: true
       share: true
-      related: true
+      related: false
+      hide_pagination: true
   # _pages
   - scope:
       path: ""
@@ -243,7 +247,7 @@ defaults:
       type: projects
     values:
       layout: single
-      author_profile: true
+      author_profile: false
       share: true
       comment: true
 

@@ -1,28 +1,21 @@
 ---
-title: 'What a Profiler Trace Actually Tells You: Optimizing a Mock Transformer Layer'
+title: 'What a Profiler Trace Actually Tells You'
 date: 2026-07-13
 permalink: /blog/profiling-a-mock-transformer/
 tags:
   - performance
   - debugging
+excerpt: "Planned. Diagnosing a real performance bug from a profiler trace alone — the show-don't-tell companion to the roofline and observability work."
+published: false
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row"><span class="pill pill--progress">Planned</span></p>
 
-## Why write this
-This is the "show, don't tell" post — instead of explaining rooflines and sharding in the abstract, walk through an actual profiler trace and diagnose a real performance bug live, the way you'd do it on the job. Pairs with the [TPU/XLA profiling project](/projects/tpu-profiling-mock-transformer/), based on the [profiling chapter](https://jax-ml.github.io/scaling-book/profiling/) of *How to Scale Your Model*.
+The show-don't-tell version of the performance posts: given only a profiler trace, work out the
+matrix shapes, the sharding strategy, and where the time is actually going — then fix it and
+compare the result against the roofline bound.
 
-## Outline
-1. Set the challenge: given only a profiler trace (no code), figure out the matrix shapes, the sharding strategy, and what fraction of time goes to attention vs. MLP
-2. Walk through your own reasoning process on the "unknown computation" exercise — what clues in the trace gave away the 8-way model-parallel sharding
-3. The mock transformer benchmark: your baseline latency per layer, and the specific sharding misconfiguration you found
-4. The fix, and the before/after numbers (aim to show your own version of the chapter's 184ms → 80-90ms improvement)
-5. Close the loop: compare your optimized latency against the roofline bound from your [roofline toolkit](/projects/roofline-modeling-toolkit/) — how close to theoretically optimal did you get, and what's left on the table
-
-## Key points to nail
-- Include actual trace screenshots/exports, not just prose descriptions — this post's credibility rests on showing the real artifact
-- Be honest about wrong turns in your diagnosis before you found the real bug; that's more instructive than a clean narrative
-- End with a concrete number: measured MXU/FLOPs utilization vs. the roofline-predicted ceiling
-
-## Reference reading
-- *How to Scale Your Model*, Chapter 9: ["How to Profile TPU Programs"](https://jax-ml.github.io/scaling-book/profiling/) (Google DeepMind)
+The closest thing I have to this today is the step-time decomposition in
+[the MFU and observability post](/blog/model-flops-utilization/), which attributes cost to
+communication vs compute at the step level. Per-kernel attribution via `torch.profiler` is the
+missing piece, and it's the next thing I want to wire into that same metrics pipeline.

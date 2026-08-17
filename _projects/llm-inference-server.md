@@ -1,30 +1,39 @@
 ---
 title: "High-Throughput LLM Inference Server"
-excerpt: "**Status: Planned.** A from-scratch inference server implementing continuous batching and paged KV-cache, benchmarked against vLLM. <br/><img src='/images/500x300.png'>"
+excerpt: "Partially built. The engine core, batched decode, and a paged block-based KV cache exist inside the disaggregated inference project — what's missing is the CUDA kernel that would make paging actually pay off."
 collection: projects
+order: 8
+status: Upcoming
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--upcoming">Writeup upcoming</span>
+  <span class="pill pill--built">Core built</span>
+  <span class="pill pill--progress">Standalone server pending</span>
+</p>
 
-## Why this matters
-Every frontier lab runs enormous fleets of GPUs just to serve inference. The engineers who own that layer (vLLM, TGI, TensorRT-LLM, in-house serving stacks) are some of the highest-leverage hires at these labs. Building a miniature version of this system end-to-end is the single most direct way to prove you understand the problem, not just the buzzwords.
+A from-scratch serving engine, benchmarked against vLLM on identical hardware.
 
-## What to build
-- A serving engine for a small open model (e.g. Llama 3 8B or Qwen 2.5 7B) that supports:
-  - Continuous batching (dynamically add/remove requests mid-flight instead of static batches)
-  - Paged KV-cache (block-based cache allocation, no cache fragmentation)
-  - Streaming token output over HTTP/gRPC
-- A load generator that simulates realistic request patterns (varying prompt/output lengths, Poisson arrivals)
-- A benchmark harness comparing your engine's throughput/latency (TTFT, TPOT, p50/p99) against vLLM on the same hardware
+## What exists
 
-## Key concepts to demonstrate
-- Why naive batching wastes GPU cycles on padding
-- How paged attention eliminates KV-cache fragmentation
-- The throughput/latency tradeoff curve as batch size grows
-- Where the bottleneck actually is: memory bandwidth vs. compute-bound regimes
+Most of the engine core was built inside the
+[disaggregated inference project](/projects/disaggregated-inference-system/): a request queue,
+batched decode that merges concurrent requests into a single forward call per tick, manual
+KV-cache management, and a paged/block-based cache with per-request block tables — validated
+token-for-token including multi-block-boundary stress cases.
 
-## Suggested stack
-PyTorch + CUDA graphs, or build on top of `flash-attn` kernels; FastAPI/gRPC for the serving layer; Prometheus for metrics.
+It was benchmarked against vLLM at TP=2 on the same hardware and the same workload. The honest
+headline: vLLM's inter-token p99 was **~30× better** (15.6 ms vs 1,671.6 ms). That gap is the
+most useful number the project produced — same architectural ideas, orders-of-magnitude
+different constant factor, because vLLM's batching is a fused kernel and mine was a Python loop
+over tensor slices.
 
-## Definition of done
-A public repo with a working server, a reproducible benchmark script, and a results write-up (README or linked blog post) with real throughput/latency numbers vs. vLLM on identical hardware.
+## What's missing
+
+The paged cache, once correct, was *slower* than the naive version it replaced — reconstructing
+a request's cache from block storage costs `seq_len / block_size` slice-and-concat operations
+per layer, each paying fixed Python and launch overhead. Making paging pay off requires writing
+the CUDA kernel that operates directly on block memory, which is the actual work here and
+hasn't been done.
+
+Also pending: a standalone HTTP/streaming serving layer rather than in-process calls.

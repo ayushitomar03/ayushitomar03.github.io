@@ -145,6 +145,7 @@
   vertical-align: top;
   width: auto;
   height: auto;
+  text-align: center;
 
   img {
     max-width: 175px;
@@ -161,6 +162,7 @@
   padding-left: 0;
   padding-right: 0;
   line-height: 1;
+  text-align: center;
 }
 
 .author__name {
@@ -194,16 +196,14 @@
   display: block;
   vertical-align: middle;
   font-family: $sans-serif;
-
-  li:last-child {
-    a {
-      margin-bottom: 0;
-    }
-  }
+  text-align: center;
 }
 
 .author__urls {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   position: relative;
   margin: 0;
   padding: 0;
@@ -211,23 +211,30 @@
   background: transparent;
   box-shadow: none;
   list-style-type: none;
+  gap: 1rem;
 
   li {
     white-space: nowrap;
   }
 
   a {
-    display: block;
-    margin-bottom: 5px;
-    padding-right: 5px;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
     color: inherit;
-    font-size: $type-size-5;
+    font-size: 0; // hide the text label, keep it for accessibility/SEO
     text-decoration: none;
 
+    // restore visible size for the icon itself (rem, not em -- em would
+    // resolve relative to this element's own font-size: 0)
+    .icon-pad-right {
+      font-size: 1.1rem;
+      padding-right: 0;
+      margin-right: 0;
+    }
+
     &:hover {
-      text-decoration: underline;
+      opacity: 0.7;
     }
   }
 }

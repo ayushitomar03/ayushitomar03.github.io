@@ -1,32 +1,55 @@
 ---
 title: "Quantization & Serving Benchmark Suite"
-excerpt: "**Status: Planned.** A rigorous benchmark of FP16 vs INT8 vs INT4 (GPTQ/AWQ) across latency, throughput, and accuracy for open LLMs. <br/><img src='/images/500x300.png'>"
+excerpt: "Built and benchmarked. FP16 vs INT8 RTN vs GPTQ INT4 vs AWQ INT4 on Qwen2.5-7B — five accuracy tasks, four concurrency levels. 2.7× throughput for 0.84 points of MMLU, and one variant whose tail latency quietly gets worse under load."
 collection: projects
+order: 4
+status: Upcoming
 ---
 
-**Status:** 🔜 Planned
+<p class="pill-row">
+  <span class="pill pill--upcoming">Writeup upcoming</span>
+  <span class="pill pill--built">Built &amp; benchmarked</span>
+  <span class="pill">Qwen2.5-7B-Instruct</span>
+  <span class="pill">L40S 46GB</span>
+  <span class="pill">vLLM · GPTQ · AWQ</span>
+</p>
 
-## Why this matters
-Every frontier lab has to decide how to serve models cheaply without wrecking quality — quantization is the lever they pull hardest. Being able to reason precisely about "how much accuracy do we lose for how much latency/cost gain" is a concrete, high-value skill, not a theoretical one.
+Three quantized variants of `Qwen2.5-7B-Instruct` benchmarked end to end against an fp16
+baseline — not one accuracy number and one latency number, but five eval tasks across four
+concurrency levels, because both halves of the tradeoff change shape with load.
 
-## What to build
-- Take one open model family (e.g. Llama 3 8B/70B or Qwen 2.5) and quantize it with:
-  - Weight-only INT8
-  - GPTQ (INT4)
-  - AWQ (INT4)
-- Benchmark each variant on:
-  - Latency (TTFT, per-token latency) and throughput (tokens/sec at various batch sizes)
-  - Memory footprint
-  - Accuracy on a standard eval (e.g. MMLU subset, or perplexity on a held-out set) to quantify the actual quality cost
-- Produce a single Pareto chart: accuracy vs. latency vs. memory, so the tradeoff is visual and immediate
+## What was built
 
-## Key concepts to demonstrate
-- Why weight-only quantization is easier than full activation quantization, and where each breaks down
-- The mechanics of GPTQ (layer-wise reconstruction error minimization) vs. AWQ (activation-aware scaling) — not just "which library to call"
-- How quantization error compounds differently across model sizes
+- **Three quantization pipelines** — INT8 round-to-nearest (W8A16, no calibration, as a floor),
+  GPTQ INT4 (W4A16), and AWQ INT4 (W4A16 asymmetric).
+- **An accuracy suite spanning task types** — MMLU, ARC-Easy, and HellaSwag (multiple choice),
+  GSM8K (multi-step generation), and wikitext perplexity. The spread is deliberate:
+  multiple-choice benchmarks can hide damage that perplexity catches, since a model can still
+  rank the right answer first while its underlying distribution has gotten noticeably noisier.
+- **A serving sweep at concurrency 1/4/16/32** via vLLM, tracking TTFT, TPOT, and throughput —
+  measuring at one load level would hide how each scheme actually behaves.
 
-## Suggested stack
-`bitsandbytes`, `AutoGPTQ`, `AutoAWQ`; `lm-eval-harness` for accuracy evals; vLLM or TensorRT-LLM for serving each variant under identical load.
+## Results
 
-## Definition of done
-A repo with reproducible benchmark scripts, a results table/chart for all variants, and a short write-up recommending which quantization scheme to use for which latency/accuracy budget.
+| | fp16 | INT8 RTN | GPTQ INT4 | AWQ INT4 |
+|---|---|---|---|---|
+| Size | 15.24 GB | 8.82 GB | 5.56 GB | 5.58 GB |
+| MMLU | 71.76 | 71.66 | 70.92 | 70.94 |
+| Wikitext PPL ↓ | 9.408 | 9.409 | 10.028 | 10.026 |
+| Throughput @ c=32 | 1,163 tok/s | 2,075 tok/s | **3,126 tok/s** | 3,102 tok/s |
+| Quantization time | — | — | 17.2 min | **9.5 min** |
+
+INT4 buys **2.7× throughput for 0.84 points of MMLU**. GPTQ and AWQ are statistically
+indistinguishable on quality — so the reason to pick AWQ is that it reaches the same place in
+**half the wall clock**, not accuracy or serving speed.
+
+The result I'd have missed by reporting throughput alone: **INT8 RTN's TTFT p99 at concurrency
+32 is worse than fp16's** (613 ms vs 373 ms) despite 1.8× the throughput. If tail latency under
+load matters, it's a weak pick.
+
+[Read the full writeup →](/blog/quantization-deep-dive/)
+
+## Limitations
+
+One 7B model on one L40S. Larger-scale behaviour is estimated directionally, not measured, and
+the calibration set size (512 samples) was never tested for sensitivity.
