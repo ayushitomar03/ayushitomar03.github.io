@@ -239,11 +239,15 @@ code, pre, kbd, samp, tt {
     overflow-x: auto;
   }
 
+  /* Only the outermost wrapper carries the frame — otherwise a Rouge block
+     renders as a box inside a box. */
+  div.highlighter-rouge .highlight,
   div.highlighter-rouge pre,
   .highlight pre {
     border: 0;
     border-radius: 0;
     background: transparent;
+    margin: 0;
   }
 }
 
