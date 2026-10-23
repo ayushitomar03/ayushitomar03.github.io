@@ -54,7 +54,7 @@ author:
   dribbble         : # Username
   github           : "ayushitomar03"
   huggingface      : "aytomar"
-  kaggle           : "ayushitomar03"
+  kaggle           : # removed from the sidebar
   stackoverflow    : # User number or user number and name (i.e., use "1" or "1/jeff-atwood")    
 
   # Social media

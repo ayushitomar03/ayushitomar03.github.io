@@ -1,0 +1,9 @@
+# "What I write about" tiles on the intro page, in this order.
+- name: "Voice AI"
+  line: "Agents that listen while they talk, handle interruptions, and clone a voice."
+- name: "Evaluating AI"
+  line: "Can we trust the judges and benchmarks that score models?"
+- name: "Inference & serving"
+  line: "Making models fast and cheap to run."
+- name: "Training"
+  line: "Distributed training, data pipelines and fine-tuning."

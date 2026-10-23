@@ -538,6 +538,8 @@ html[data-theme="dark"] code.language-mermaid {
 
 .author__avatar img {
   border: 1px solid var(--rule);
+  display: block;   /* centre the photo on the same axis as the name, bio and icons */
+  margin: 0 auto;
 }
 
 .author__name {
@@ -1037,3 +1039,42 @@ a.demo-link--ghost {
     border-color: var(--accent-strong);
   }
 }
+
+/* ---- What I write about (intro page) ---- */
+.topic-tiles { list-style: none; margin: 0.4em 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8em; }
+@media (max-width: 640px) { .topic-tiles { grid-template-columns: 1fr; } }
+.topic-tile { border: 1px solid var(--rule); border-radius: 10px; padding: 0.9em 1.1em; display: grid; gap: 0.25em; margin: 0; align-content: start; }
+.topic-tile__name { font-weight: 700; font-size: 0.95em; }
+.topic-tile__line { font-size: 0.85em; color: var(--text-muted); line-height: 1.45; }
+
+/* Intro on the left, "What I write about" in a right column, both above the fold */
+.intro-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 2em; align-items: start; margin-bottom: 1.4em; }
+@media (max-width: 900px) { .intro-grid { grid-template-columns: 1fr; gap: 1em; } }
+.intro-main > p:first-child { margin-top: 0; }
+.intro-topics .section-label { margin-top: 0.2em; }
+.intro-topics .topic-tiles { grid-template-columns: 1fr; gap: 0.5em; }
+.intro-topics .topic-tile { padding: 0.6em 0.85em; }
+
+/* Home page: equal gaps between the three columns (sidebar, intro, topics), and the
+   content ends at the same right edge as the masthead. From 1024px the sidebar is
+   position: fixed at min(span 2 of 12, 250px) wide, so the page is offset by that width. */
+@media (min-width: 925px) {
+  .page:has(.intro-grid) { padding-left: 1.2em; padding-right: 0; }
+}
+@media (min-width: 1024px) {
+  .page:has(.intro-grid) {
+    float: none;
+    width: auto;
+    padding: 0;
+    margin-left: calc(min(15.28vw, 250px) + 2em);
+  }
+}
+
+/* Compact topic list in the right column: no boxes, so the column is no taller than the intro
+   and Featured starts above the fold */
+.intro-topics .topic-tiles { gap: 0; }
+.intro-topics .topic-tile { border: 0; border-radius: 0; border-bottom: 1px solid var(--rule); padding: 0.55em 0; gap: 0.1em; }
+.intro-topics .topic-tile:last-child { border-bottom: 0; }
+.intro-topics .topic-tile__name { font-size: 0.9em; }
+.intro-topics .topic-tile__line { font-size: 0.8em; line-height: 1.4; }
+.intro-grid { margin-bottom: 0.6em; }

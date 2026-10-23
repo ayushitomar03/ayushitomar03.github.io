@@ -8,6 +8,8 @@ redirect_from:
   - /about.html
 ---
 
+<div class="intro-grid">
+<div class="intro-main">
 <p class="intro-lede">Hi, I'm Ayushi. I work on developing agentic AI systems, inference
 optimization, training, and evaluation of multimodal AI agents.</p>
 
@@ -16,6 +18,11 @@ how multi-agent systems can reason, collaborate, and operate in real time.</p>
 
 <p class="intro-body">Here, I write about the systems I build, the experiments behind them, and
 the engineering lessons I learn along the way.</p>
+</div>
+<aside class="intro-topics">
+{% include topic-index.html %}
+</aside>
+</div>
 
 <div class="section-label">Featured</div>
 

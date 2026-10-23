@@ -1,0 +1,10 @@
+{% comment %} "What I write about": a quick glimpse of the themes, from _data/topics.yml {% endcomment %}
+<div class="section-label">What I write about</div>
+<ul class="topic-tiles">
+  {% for t in site.data.topics %}
+  <li class="topic-tile">
+    <span class="topic-tile__name">{{ t.name }}</span>
+    <span class="topic-tile__line">{{ t.line }}</span>
+  </li>
+  {% endfor %}
+</ul>

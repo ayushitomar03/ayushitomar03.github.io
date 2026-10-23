@@ -1,0 +1,12 @@
+# Long-form articles published on X (@AyushiTomar147), newest first.
+# To add one: copy an entry and fill in title, date ("YYYY-MM-DD HH:MM:SS +0000"), url and summary.
+
+- title: "Full-duplex voice AI and the realization gap"
+  date: 2026-10-16 05:22:49 +0000
+  url: https://x.com/AyushiTomar147/status/2110964661973881245
+  summary: "A dozen voice AI systems claim to be full-duplex but mean different things. A walk through a 2026 survey (arXiv 2606.19453) that sorts them by where the decision to speak lives (L0 to L3), what their training data covers, and what benchmarks actually measure."
+
+- title: "Can a model that can't write find the first wrong step in a math solution?"
+  date: 2026-10-02 20:14:25 +0000
+  url: https://x.com/AyushiTomar147/status/2106115609675337804
+  summary: "An experiment with Jev (TypeSafe), a decision-only model that picks between options instead of writing text: can it locate the first incorrect step in a math solution?"
