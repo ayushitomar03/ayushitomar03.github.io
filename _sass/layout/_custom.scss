@@ -1078,3 +1078,16 @@ a.demo-link--ghost {
 .intro-topics .topic-tile__name { font-size: 0.9em; }
 .intro-topics .topic-tile__line { font-size: 0.8em; line-height: 1.4; }
 .intro-grid { margin-bottom: 0.6em; }
+
+/* ---- Next page card (bottom of home and menu pages) ---- */
+.next-page {
+  display: grid; gap: 0.2em; margin: 3em 0 1em; padding: 1em 1.2em;
+  border: 1px solid var(--rule); border-radius: 10px; text-decoration: none;
+  color: inherit;
+}
+.next-page:hover { border-color: var(--text-muted); }
+.next-page__label { font-size: 0.75em; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.next-page__title { font-size: 1.15em; font-weight: 700; }
+.next-page__hint { font-size: 0.8em; color: var(--text-muted); }
+.next-page__bar { height: 3px; margin-top: 0.5em; background: var(--rule); border-radius: 2px; overflow: hidden; }
+.next-page__fill { display: block; height: 100%; width: 0; background: currentColor; transition: width 0.15s ease-out; }

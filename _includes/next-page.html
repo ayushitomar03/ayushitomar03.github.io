@@ -1,0 +1,49 @@
+{% comment %}
+  "Next page" card at the bottom of the home page and each menu page.
+  Order: home, then the menu in _data/navigation.yml. Scrolling on past the end
+  of the page fills the bar and opens the next page; the card is also a plain link.
+{% endcomment %}
+{% assign np_urls = "/" | split: "," %}
+{% assign np_titles = "Home" | split: "," %}
+{% for link in site.data.navigation.main %}
+  {% assign np_urls = np_urls | push: link.url %}
+  {% assign np_titles = np_titles | push: link.title %}
+{% endfor %}
+{% for u in np_urls %}
+  {% if u == page.url %}
+    {% assign np_i = forloop.index %}
+    {% if np_i < np_urls.size %}
+<a class="next-page" id="next-page" href="{{ base_path }}{{ np_urls[np_i] }}">
+  <span class="next-page__label">Next</span>
+  <span class="next-page__title">{{ np_titles[np_i] }} &rarr;</span>
+  <span class="next-page__hint">Keep scrolling to go there</span>
+  <span class="next-page__bar"><span class="next-page__fill" id="next-page-fill"></span></span>
+</a>
+<script>
+(function () {
+  var card = document.getElementById("next-page");
+  var fill = document.getElementById("next-page-fill");
+  if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+  var need = 600, pulled = 0, gone = false, idle;
+  function atEnd() { var el = document.scrollingElement || document.documentElement; return el.scrollTop >= el.scrollHeight - el.clientHeight - 4; }
+  function push(d) {
+    if (gone) { return; }
+    if (!atEnd() || d <= 0) { pulled = 0; fill.style.width = "0"; return; }
+    pulled += d;
+    fill.style.width = Math.min(100, pulled / need * 100) + "%";
+    clearTimeout(idle);
+    idle = setTimeout(function () { pulled = 0; fill.style.width = "0"; }, 900);
+    if (pulled >= need) { gone = true; window.location.href = card.href; }
+  }
+  window.addEventListener("wheel", function (e) { push(e.deltaY); }, { passive: true });
+  var y0 = null;
+  window.addEventListener("touchstart", function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener("touchmove", function (e) {
+    if (y0 === null) { return; }
+    var y = e.touches[0].clientY; push((y0 - y) * 2); y0 = y;
+  }, { passive: true });
+})();
+</script>
+    {% endif %}
+  {% endif %}
+{% endfor %}
